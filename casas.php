@@ -3,7 +3,22 @@
 require_once 'dbConfig.php'; 
  
 // Get image data from database 
-$result = $db->query("SELECT nombre, imagen1, imagen2, imagen3, imagen4, descripcion  FROM propiedades WHERE tipo = 'Casa' ORDER BY id ASC"); 
+$result = $db->query("SELECT nombre, imagen1, imagen2, imagen3, imagen4, descripcion  FROM propiedades ORDER BY id ASC"); 
+
+$queryType = $db->query("SELECT DISTINCT tipo FROM propiedades");
+
+while($row = mysqli_fetch_array($queryType)) {
+  $tipo[] = $row['tipo'];
+}
+print_r($tipo);
+
+
+$queryRegion = $db->query("SELECT DISTINCT region FROM propiedades");
+
+while($row = mysqli_fetch_array($queryRegion)) {
+  $region[] = $row['region'];
+}
+print_r($region);
 ?>
 
 
@@ -61,29 +76,53 @@ $result = $db->query("SELECT nombre, imagen1, imagen2, imagen3, imagen4, descrip
 </nav>
 
 
+<?php if(count($tipo) > 0 AND count($region) > 0){ ?> 
+    
+    
+
 <form action="" class="form-inline" id="filterBar" method="POST">
   <div class="form-group mx-sm-3 mb-2">
-  <label for="filter">Filtrar por:  </label>
+  <label for="filter">Tipo:  </label>
           <select id="filter" class="form-control" name="filter" require>
-            <option selected></option>
-            <option>id</option>
-            <option>region</option>
-            <option>precio</option>
-            <option>comuna</option>
+            <?php $x = 0; while($x < count($tipo)){ ?>
+              <option><?php echo ($tipo[$x]); ?></option>
+              <?php $x++;?>
+            <?php } ?> 
+          </select>
+
+  <label for="filter">Region:  </label>
+          <select id="filter2" class="form-control" name="filter2" require>
+            <?php $x = 0; while($x < count($region)){ ?>
+              <option><?php echo ($region[$x]); ?></option>
+              <?php $x++;?>
+            <?php } ?> 
           </select>
   </div>
   <button type="submit" class="btn btn-primary mb-2" name="applyFilter">Ir</button>
 </form>
+
+     
+<?php }else{ ?> 
+    <p class="status error">Rows not found...</p> 
+<?php } ?>
+
 <?php
 if(isset($_POST['applyFilter'])){
   
-  $filterval = $_POST['filter'];
+  $filtertype = $_POST['filter'];
+  $filterreg = $_POST['filter2'];
 
-  if(empty($filterval)){
+  print_r($filterreg);
+  print_r($filtertype);
 
+  if(empty($filtertype) AND !empty($filterreg)){
+    $result = $db->query("SELECT nombre, imagen1, imagen2, imagen3, imagen4, descripcion  FROM propiedades WHERE region = '$filterreg'");
+  }
+  elseif(!empty($filtertype) AND empty($filterreg)){
+    $result = $db->query("SELECT nombre, imagen1, imagen2, imagen3, imagen4, descripcion  FROM propiedades WHERE tipo = '$filtertype'");
   }
   else{
-  $result = $db->query("SELECT nombre, imagen1, imagen2, imagen3, imagen4, descripcion  FROM propiedades WHERE tipo = 'Casa' ORDER BY $filterval DESC");
+  $result = $db->query("SELECT nombre, imagen1, imagen2, imagen3, imagen4, descripcion  FROM propiedades WHERE tipo = '$filtertype' AND region = '$filterreg' ");
   }
 }
 ?>
